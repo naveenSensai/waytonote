@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Notes - WayToNote</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="upload-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>WayToNote</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#subjects">Subjects</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+        <div class="upload-container">
+            <h2>Upload Study Materials</h2>
+            <p class="upload-description">Share your knowledge with fellow students. Upload your notes, study materials, or resources.</p>
+            
+            <form class="upload-form">
+                <!-- Authentication Fields -->
+                <div class="auth-section">
+                    <h3>Authentication Required</h3>
+                    <div class="form-group">
+                        <label for="email">Username</label>
+                        <input type="text" id="email" required placeholder="12345678A">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="password" required placeholder="Enter your password">
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider">
+                    <span>Upload Details</span>
+                </div>
+
+                <!-- Existing Form Fields -->
+                <div class="form-group">
+                    <label for="title">Title of the Material</label>
+                    <input type="text" id="title" required placeholder="e.g., Data Structures Notes">
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" required>
+                        <option value="">Select a subject</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="computer-science">Computer Science</option>
+                        <option value="physics">Physics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject-code">Subject Code</label>
+                    <input type="text" id="subject-code" placeholder="e.g., CS102">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="4" placeholder="Brief description about the content"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="author-type">I am a</label>
+                    <select id="author-type" required>
+                        <option value="">Select your role</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+
+                <div class="form-group file-upload">
+                    <label for="file">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Choose File</span>
+                    </label>
+                    <input type="file" id="file" required>
+                    <p class="file-info">Supported formats: PDF, DOC, DOCX, PPT, PPTX (Max size: 10MB)</p>
+                </div>
+
+                <button type="submit" class="upload-button">
+                    <i class="fas fa-upload"></i>
+                    Upload Material
+                </button>
+            
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WayToNote</h3>
+                <p>Making college studies easier and more accessible.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#subjects">Subjects</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 WayToNote. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Password visibility toggle
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const passwordInput = document.querySelector('#password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Form submission handling
+        document.querySelector('.upload-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const username = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // First, authenticate
+                const authResponse = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const authData = await authResponse.json();
+
+                if (!authData.success) {
+                    alert('Authentication failed. Please check your credentials.');
+                    return;
+                }
+
+                // If authenticated, proceed with file upload
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+                formData.append('title', document.getElementById('title').value);
+                formData.append('subject', document.getElementById('subject').value);
+                formData.append('subject_code', document.getElementById('subject-code').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('author_type', document.getElementById('author-type').value);
+                formData.append('file', document.getElementById('file').files[0]);
+
+                const uploadResponse = await fetch('http://127.0.0.1:5000/api/upload', {                    method: 'POST',
+                    body: formData
+                });
+
+                const uploadData = await uploadResponse.json();
+
+                if (uploadData.success) {
+                    alert('File uploaded successfully!');
+                    // Reset form
+                    this.reset();
+                } else {
+                    alert('Upload failed: ' + uploadData.message);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during upload. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

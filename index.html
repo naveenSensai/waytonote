@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WayToNote - Your College Study Companion</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>WayToNote</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#subjects">Subjects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Welcome to WayToNote</h1>
+            <p>Your one-stop destination for organized college notes and study materials</p>
+            <a href="upload.html" class="cta-button">Upload Notes</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2>Why Choose WayToNote?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-book-open"></i>
+                <h3>Organized Notes</h3>
+                <p>Well-structured and easy to understand study materials</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>Collaborative Learning</h3>
+                <p>Share and learn with your classmates</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Mobile Friendly</h3>
+                <p>Access your notes anywhere, anytime</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-clock"></i>
+                <h3>24/7 Access</h3>
+                <p>Study at your own pace and convenience</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Subjects Section -->
+    <section id="subjects" class="subjects">
+        <h2>Browse by Subjects</h2>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="subjectSearch" placeholder="Search subjects, topics, or subject codes...">
+                <button class="search-button" onclick="filterNotes()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="subjects-grid" id="subjectsGrid">
+            <!-- Notes will be dynamically populated here -->
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <h2>Get in Touch</h2>
+        <div class="contact-form">
+            <form>
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <textarea placeholder="Your Message" required></textarea>
+                <button type="submit" class="submit-button">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WayToNote</h3>
+                <p>Making college studies easier and more accessible.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#subjects">Subjects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 WayToNote. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Available Notes</h2>
+                <div id="notesList" class="row">
+                    <!-- Notes will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to get file icon based on extension
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch(ext) {
+                case 'pdf':
+                    return 'fa-file-pdf';
+                case 'doc':
+                case 'docx':
+                    return 'fa-file-word';
+                case 'ppt':
+                case 'pptx':
+                    return 'fa-file-powerpoint';
+                default:
+                    return 'fa-file';
+            }
+        }
+
+        // Function to load and display notes
+        async function loadNotes() {
+            try {
+                const response = await fetch('/api/notes');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Group notes by subject code
+                    const notesBySubject = {};
+                    data.notes.forEach(note => {
+                        if (!notesBySubject[note.subject_code]) {
+                            notesBySubject[note.subject_code] = {
+                                subject: note.subject,
+                                notes: []
+                            };
+                        }
+                        notesBySubject[note.subject_code].notes.push(note);
+                    });
+
+                    // Display subject cards
+                    const subjectsGrid = document.getElementById('subjectsGrid');
+                    subjectsGrid.innerHTML = Object.entries(notesBySubject).map(([code, data]) => `
+                        <div class="subject-card">
+                            <i class="fas ${getFileIcon(data.notes[0].filename)}"></i>
+                            <h3>${data.subject}</h3>
+                            <p class="subject-code">${code}</p>
+                            <p class="notes-count">${data.notes.length} note${data.notes.length !== 1 ? 's' : ''}</p>
+                            <a href="view-notes.html?code=${code}" class="subject-link">View Notes</a>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading notes:', error);
+            }
+        }
+
+        // Function to filter notes
+        function filterNotes() {
+            const searchTerm = document.getElementById('subjectSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('.subject-card');
+
+            cards.forEach(card => {
+                const subject = card.querySelector('h3').textContent.toLowerCase();
+                const code = card.querySelector('.subject-code').textContent.toLowerCase();
+                
+                if (subject.includes(searchTerm) || code.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Load notes when page loads
+        loadNotes();
+
+        // Add search input event listener
+        document.getElementById('subjectSearch').addEventListener('input', filterNotes);
+
+        // Check if user is logged in
+        window.addEventListener('load', function() {
+            const userType = localStorage.getItem('userType');
+            if (!userType) {
+                window.location.href = 'login.html';
+                return;
+            }
+        });
+    </script>
+</body>
+</html> 

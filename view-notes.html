@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Notes - WayToNote</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="notes-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>WayToNote</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#subjects">Subjects</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Notes Section -->
+    <section class="notes-section">
+        <div class="notes-container">
+            <div class="subject-header">
+                <h2><span id="subjectName">Subject Name</span> (<span id="subjectCode">Code</span>)</h2>
+                <div class="sort-filter">
+                    <select id="sortBy">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="title">Title</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="notes-grid" id="notesGrid">
+                <!-- Notes will be dynamically populated here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WayToNote</h3>
+                <p>Making college studies easier and more accessible.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#subjects">Subjects</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 WayToNote. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Get subject code from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const subjectCode = urlParams.get('code');
+
+        // Function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Function to get file icon based on extension
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch(ext) {
+                case 'pdf':
+                    return 'fa-file-pdf';
+                case 'doc':
+                case 'docx':
+                    return 'fa-file-word';
+                case 'ppt':
+                case 'pptx':
+                    return 'fa-file-powerpoint';
+                default:
+                    return 'fa-file';
+            }
+        }
+
+        // Function to load notes
+        async function loadNotes() {
+            try {
+                const response = await fetch(`/api/notes?subject_code=${subjectCode}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update subject name and code
+                    document.getElementById('subjectName').textContent = data.notes[0]?.subject || 'Subject';
+                    document.getElementById('subjectCode').textContent = subjectCode;
+
+                    // Populate notes grid
+                    const notesGrid = document.getElementById('notesGrid');
+                    notesGrid.innerHTML = data.notes.map(note => `
+                        <div class="note-card">
+                            <div class="note-icon">
+                                <i class="fas ${getFileIcon(note.filename)}"></i>
+                            </div>
+                            <div class="note-details">
+                                <h3>${note.title}</h3>
+                                <p class="note-description">${note.description}</p>
+                                <div class="note-meta">
+                                    <span class="upload-date">
+                                        <i class="fas fa-clock"></i>
+                                        ${formatDate(note.upload_date)}
+                                    </span>
+                                    <span class="author-type">
+                                        <i class="fas fa-user"></i>
+                                        ${note.author_type}
+                                    </span>
+                                </div>
+                                <div class="note-actions">
+                                    <a href="/uploads/${note.filename}" class="download-button" download>
+                                        <i class="fas fa-download"></i>
+                                        Download Notes
+                                    </a>
+                                    <button class="summary-button" onclick="generateSummary('${note.filename}')" id="summary-${note.filename}">
+                                        <i class="fas fa-file-alt"></i>
+                                        Download Summary
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading notes:', error);
+            }
+        }
+
+        // Function to generate summary
+        async function generateSummary(filename) {
+            const button = document.getElementById(`summary-${filename}`);
+            const originalText = button.innerHTML;
+            
+            try {
+                // Show loading state
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                button.disabled = true;
+                
+                // Call the summarization API
+                const response = await fetch(`/api/summarize/${filename}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Create a temporary link to download the summary
+                    const link = document.createElement('a');
+                    link.href = `/uploads/${data.summary_filename}`;
+                    link.download = data.summary_filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert(data.message || 'Error generating summary');
+                }
+            } catch (error) {
+                console.error('Error generating summary:', error);
+                alert('Error generating summary. Please try again.');
+            } finally {
+                // Reset button state
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Load notes when page loads
+        loadNotes();
+
+        // Handle sorting
+        document.getElementById('sortBy').addEventListener('change', loadNotes);
+    </script>
+</body>
+</html> 
