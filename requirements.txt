@@ -1,10 +1,9 @@
-Flask==2.0.1
-Flask-Cors==3.0.10
-pypdf2==3.0.1
-PyPDF2==3.0.1
-nltk==3.8.1
-torch
-transformers==4.36.2
-Werkzeug==2.0.1
-Jinja2==3.0.1
+Flask
+Flask-Cors
+PyPDF2
+nltk
+torch --index-url https://download.pytorch.org/whl/cpu
+transformers
+Werkzeug
+Jinja2
 gunicorn
